@@ -1,6 +1,7 @@
 const form = document.getElementById('item-form');
 const intemList = document.getElementById('item-list');
 const itemInput = document.getElementById('item-input');
+const clearAllButton = document.getElementById('clear');
 
 const handleSubmit = (e) => {
     e.preventDefault();
@@ -16,4 +17,18 @@ const handleSubmit = (e) => {
     itemInput.value = '';
 }
 
+const deleteItem = (e) => {
+    if(e.target.classList.contains('fa-xmark')) {
+        e.target.parentNode.parentNode.remove();
+    };
+}
+
+const clearAll = () => {
+    while(intemList.firstChild) {
+        intemList.removeChild(intemList.firstChild);
+    }
+}
+
 form.addEventListener("submit", handleSubmit);
+intemList.addEventListener("click", deleteItem);
+clearAllButton.addEventListener("click", clearAll)
