@@ -8,6 +8,7 @@ const checkIfListIsEmpty = () => {
     if(intemList.childElementCount === 0) {
         clearAllButton.style.display = 'none';
         filter.style.display = 'none';
+        filter.value = '';
     }else{
         clearAllButton.style.display = 'block'
         filter.style.display = 'block';
@@ -56,8 +57,18 @@ const clearAll = () => {
     }
 }
 
+const handleFilter = (e) => {
+    const textToFilter = e.target.value;
+    console.log(textToFilter)
+    const listItems = document.querySelectorAll('li');
+    for (const item of listItems) {
+        item.style.display = item.innerText.includes(textToFilter) ? "flex" : "none";
+    }
+}
+
 form.addEventListener("submit", handleSubmit);
 intemList.addEventListener("click", deleteItem);
-clearAllButton.addEventListener("click", clearAll)
+clearAllButton.addEventListener("click", clearAll);
+filter.addEventListener("keyup", handleFilter);
 
 checkIfListIsEmpty();
