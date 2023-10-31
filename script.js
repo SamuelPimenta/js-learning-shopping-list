@@ -1,10 +1,12 @@
 const form = document.getElementById("item-form");
+const formButton = document.querySelector(".btn");
 const intemList = document.getElementById("item-list");
 const itemInput = document.getElementById("item-input");
 const clearAllButton = document.getElementById("clear");
 const filter = document.getElementById("filter");
+let isEditMode = false;
 
-const checkIfListIsEmpty = () => {
+const checkUI = () => {
   if (intemList.childElementCount === 0) {
     clearAllButton.style.display = "none";
     filter.style.display = "none";
@@ -13,6 +15,9 @@ const checkIfListIsEmpty = () => {
     clearAllButton.style.display = "block";
     filter.style.display = "block";
   }
+  isEditMode = false;
+  changeFormButton("add");
+  itemInput.value = "";
 };
 
 const validateInput = (input) => {
@@ -33,29 +38,85 @@ const createListItem = (text) => {
 
 const addItemToList = (item) => {
   intemList.appendChild(item);
-  checkIfListIsEmpty();
+  checkUI();
+};
+
+const getParsedItemsFromLocalStorage = () => {
+  let items = [];
+  items = JSON.parse(localStorage.getItem("items")) ?? items;
+  return items;
+};
+
+const removeItemFromLocalStorage = (itemToRemove) => {
+  let items = getParsedItemsFromLocalStorage();
+  items = items.filter((i) => i !== itemToRemove);
+  localStorage.setItem("items", JSON.stringify(items));
+};
+
+const removeItem = (item) => {
+  removeItemFromLocalStorage(item.parentElement.parentElement.textContent);
+  item.parentNode.parentNode.remove();
+};
+
+const editItem = (text) => {
+  const itemToEdit = document.querySelector(".edit-mode");
+  const storedItems = getParsedItemsFromLocalStorage();
+  const updatedItems = storedItems.map((sI) =>
+    sI === itemToEdit.textContent ? text : sI
+  );
+  localStorage.setItem("items", JSON.stringify(updatedItems));
+  itemToEdit.firstChild.textContent = text;
+  itemToEdit.classList.remove("edit-mode");
 };
 
 const handleSubmit = (e) => {
   e.preventDefault();
   const newItemText = itemInput.value;
   if (!validateInput(newItemText)) return;
-  addItemToLocalStorage(newItemText);
-  const newListItem = createListItem(newItemText);
-  addItemToList(newListItem);
-  itemInput.value = "";
+  if (isEditMode) {
+    editItem(itemInput.value);
+  } else {
+    addItemToLocalStorage(newItemText);
+    const newListItem = createListItem(newItemText);
+    addItemToList(newListItem);
+  }
+  checkUI();
 };
 
-const deleteItem = (e) => {
+const handleListItemColors = (item) => {
+  const listItems = document.querySelectorAll("li");
+  listItems.forEach((item) => item.classList.remove("edit-mode"));
+  item.classList.add("edit-mode");
+};
+
+const changeFormButton = (option) => {
+  if (option === "add") {
+    formButton.innerHTML = '<i class="fa-solid fa-plus"></i>   Add Item';
+    formButton.style.backgroundColor = "#333";
+  } else {
+    formButton.innerHTML = '<i class="fa-solid fa-pen"></i>   Update Item';
+    formButton.style.backgroundColor = "green";
+  }
+};
+
+const handleEditItem = (item) => {
+  isEditMode = true;
+  item.classList.add("edit-mode");
+  handleListItemColors(item);
+  changeFormButton("edit");
+  itemInput.value = item.textContent;
+};
+
+const handleListItemClick = (e) => {
+  const item = e.target;
   if (
-    e.target.parentElement.classList.contains("remove-item") &&
+    item.parentElement.classList.contains("remove-item") &&
     confirm("Are you sure you want to remove this item?")
   ) {
-    removeItemFromLocalStorage(
-      e.target.parentElement.parentElement.textContent
-    );
-    e.target.parentNode.parentNode.remove();
-    checkIfListIsEmpty();
+    removeItem(item);
+    checkUI();
+  } else {
+    handleEditItem(item);
   }
 };
 
@@ -65,13 +126,12 @@ const clearAll = () => {
       intemList.removeChild(intemList.firstChild);
     }
     removeAllItemsFromLocalStorage();
-    checkIfListIsEmpty();
+    checkUI();
   }
 };
 
 const handleFilter = (e) => {
   const textToFilter = e.target.value;
-  console.log(textToFilter);
   const listItems = document.querySelectorAll("li");
   for (const item of listItems) {
     item.style.display = item.innerText.includes(textToFilter)
@@ -80,21 +140,9 @@ const handleFilter = (e) => {
   }
 };
 
-const getParsedItemsFromLocalStorage = () => {
-  let items = [];
-  items = JSON.parse(localStorage.getItem("items")) ?? items;
-  return items;
-};
-
 const addItemToLocalStorage = (item) => {
   const items = getParsedItemsFromLocalStorage();
   items.push(item);
-  localStorage.setItem("items", JSON.stringify(items));
-};
-
-const removeItemFromLocalStorage = (itemToRemove) => {
-  let items = getParsedItemsFromLocalStorage();
-  items = items.filter((i) => i !== itemToRemove);
   localStorage.setItem("items", JSON.stringify(items));
 };
 
@@ -111,11 +159,11 @@ const populateListFromLocalStorage = () => {
 
 const init = () => {
   form.addEventListener("submit", handleSubmit);
-  intemList.addEventListener("click", deleteItem);
+  intemList.addEventListener("click", handleListItemClick);
   clearAllButton.addEventListener("click", clearAll);
   filter.addEventListener("keyup", handleFilter);
   document.addEventListener("DOMContentLoaded", populateListFromLocalStorage);
-  checkIfListIsEmpty();
+  checkUI();
 };
 
 init();
