@@ -141,7 +141,7 @@ const handleListItemClick = (e) => {
 };
 
 const clearAll = () => {
-  if (confirm("Are you sure you want to remove this item?")) {
+  if (confirm("Are you sure you want to remove all items?")) {
     while (intemList.firstChild) {
       intemList.removeChild(intemList.firstChild);
     }
