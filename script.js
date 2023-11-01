@@ -69,10 +69,30 @@ const editItem = (text) => {
   itemToEdit.classList.remove("edit-mode");
 };
 
+const itemAlreadyInList = (text) => {
+  const items = getParsedItemsFromLocalStorage();
+  for (const i of items) {
+    if (i.toLowerCase() === text.toLowerCase()) {
+      return true;
+    }
+  }
+  return false;
+};
+const handleDuplicateItem = () => {
+  alert("Item already exists");
+  const listItems = document.querySelectorAll("li");
+  listItems.forEach((item) => item.classList.remove("edit-mode"));
+  checkUI();
+};
 const handleSubmit = (e) => {
   e.preventDefault();
   const newItemText = itemInput.value;
   if (!validateInput(newItemText)) return;
+  if (itemAlreadyInList(newItemText)) {
+    handleDuplicateItem();
+    return;
+  }
+
   if (isEditMode) {
     editItem(itemInput.value);
   } else {
